@@ -19,12 +19,16 @@ func GeneratePrompt(promptTemplate string, input string) string {
 		fileList = "unknown"
 	}
 
+	envs := strings.Join(os.Environ(), "\n")
+
+
 	prompt := promptTemplate
 	prompt = strings.Replace(prompt, "{shell}", shell, 1)
 	prompt = strings.Replace(prompt, "{input}", input, 1)
 	prompt = strings.Replace(prompt, "{os}", operatingSystem, 1)
 	prompt = strings.Replace(prompt, "{path}", workingDir, 1)
 	prompt = strings.Replace(prompt, "{files}", fileList, 1)
+	prompt = strings.Replace(prompt, "{envs}", envs, 1)
 
 	return prompt
 }

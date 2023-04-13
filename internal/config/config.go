@@ -11,16 +11,16 @@ import (
 )
 
 type Config struct {
-	configPath     string
-    Debug          bool    `toml:"debug"`
-    MaxTokens      int     `toml:"max_tokens"`
-    Temperature    float32 `toml:"temperature"`
-    PromptTemplate string  `toml:"prompt_template"`
-    Model          string  `toml:"model"`
-    APIKey         string  `toml:"api_key"`
-    Color          bool    `toml:"color"`
-    SystemMessage  string  `toml:"system_message"`
-	SystemMessageDebug  string  `toml:"system_message_debug"`
+	configPath          string
+	Debug               bool    `toml:"debug,omitempty"`
+	MaxTokens           int     `toml:"max_tokens,omitempty"`
+	Temperature         float32 `toml:"temperature,omitempty"`
+	PromptTemplate      string  `toml:"prompt_template,omitempty"`
+	Model               string  `toml:"model,omitempty"`
+	APIKey              string  `toml:"api_key,omitempty"`
+	Color               bool    `toml:"color,omitempty"`
+	SystemMessage       string  `toml:"system_message,omitempty"`
+	SystemMessageDebug  string  `toml:"system_message_debug,omitempty"`
 }
 
 func NewConfig(configPath string) *Config {
@@ -41,11 +41,13 @@ func (c *Config) LoadConfig() error {
 		return err
 	}
 
+	c.applyDefaultValues()
+
 	return nil
 }
 
 func (c *Config) createDefaultConfig() error {
-	c.defaultConfig()
+	c.applyDefaultValues()
 
 	err := c.setAPIKeyDialog()
 	if err != nil {
