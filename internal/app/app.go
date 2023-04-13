@@ -104,39 +104,25 @@ func InteractiveDialog(cfg *config.Config) error {
 			return err
 		}
 
-		stop, err := cfg.HandleMessage(input)
-		if err != nil {
+		if err := handleMessage(cfg, input); err != nil {
 			return err
-		}
-		if stop {
-			return nil
 		}
 
 		input = strings.TrimSpace(input)
 		if input == "exit" || input == "quit" {
-			break
+			return nil
 		}
 		if input == "" {
 			continue
 		}
 
-		// Start the loader
-		loader := utils.NewLoader("Loading")
-		loader.Start()
-
-		response, err := dialog.SendMessage(cfg, input)
-
-		// Stop the loader
-		loader.Stop()
-
+		response, err := getResponse(dialog, cfg, input)
 		if err != nil {
 			return err
 		}
 
 		console.PrintResponse("GPT: %s\n", response)
 	}
-
-	return nil
 }
 
 func executeShellCommand(cmdStr string) error {
