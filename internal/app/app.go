@@ -1,9 +1,9 @@
 package app
 
 import (
+	"errors"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/alex-ello/gpt-cli/internal/config"
@@ -11,6 +11,8 @@ import (
 	"github.com/alex-ello/gpt-cli/internal/gpt"
 	"github.com/alex-ello/gpt-cli/pkg/utils"
 )
+
+var ErrExit = errors.New("exit")
 
 func ExecCommand(cfg *config.Config, input string) error {
 
@@ -22,7 +24,7 @@ func ExecCommand(cfg *config.Config, input string) error {
 	dialog.HistoryAddSystem(promptSystem)
 
 	for {
-		if err := handleMessage(cfg, input); err != nil {
+		if err := handleCommand(cfg, input); err != nil {
 			return err
 		}
 
@@ -32,21 +34,33 @@ func ExecCommand(cfg *config.Config, input string) error {
 		}
 		console.PrintResponse("\n> %s\n\n", response)
 
+		console.Printf("Command:\n> %s\n\n", utils.ExtractCommand(response))
+
 		input, err = console.Prompt("Execute? (y/n) or type for a correction: ")
 		if err != nil {
 			return err
 		}
 
-		if stop := executeOrContinue(input, response); stop {
+		if input == "y" {
+			return executeCommand(response)
+		}
+
+		if input == "n" || input == "" {
 			return nil
 		}
 	}
 }
 
-func handleMessage(cfg *config.Config, input string) error {
-	stop, err := cfg.HandleMessage(input)
-	if err != nil || stop {
-		return err
+func handleCommand(cfg *config.Config, input string) error {
+	switch input {
+	case "version":
+		console.Printf(cfg.Version)
+		return ErrExit
+	case "config":
+		if err := cfg.ConfigDialog(); err != nil {
+			return err
+		}
+		return ErrExit
 	}
 	return nil
 }
@@ -67,30 +81,11 @@ func getResponse(dialog *gpt.Dialog, cfg *config.Config, promptUser string) (str
 	return response, nil
 }
 
-func executeOrContinue(input, response string) bool {
-	switch input {
-	case "y":
-		cmdStr := extractCommand(response)
-		return executeShellCommand(cmdStr) == nil
-	case "n":
-		return true
-	}
-	return false
+func executeCommand(response string) error {
+		cmdStr := utils.ExtractCommand(response)
+		return executeShellCommand(cmdStr)
 }
 
-func extractCommand(response string) string {
-	if !strings.Contains(response, "```") {
-		return response
-	}
-	re := regexp.MustCompile("(?s)```(.*?)```")
-	matches := re.FindStringSubmatch(response)
-
-	if len(matches) > 1 {
-		return strings.Trim(matches[0], "`")
-	}
-
-	return ""
-}
 
 func InteractiveDialog(cfg *config.Config) error {
 	client := gpt.NewClient(cfg)
@@ -104,7 +99,7 @@ func InteractiveDialog(cfg *config.Config) error {
 			return err
 		}
 
-		if err := handleMessage(cfg, input); err != nil {
+		if err := handleCommand(cfg, input); err != nil {
 			return err
 		}
 

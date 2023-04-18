@@ -10,13 +10,17 @@ import (
 	"github.com/alex-ello/gpt-cli/internal/config"
 )
 
-const configName = "config.toml"
-const appName = "gpt-cli"
+const (
+	configName = "config.toml"
+	appName    = "gpt-cli"
+)
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		if err != app.ErrExit {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 

@@ -2,6 +2,8 @@
 
 `gpt-cli` is a command line interface (CLI) application that leverages OpenAI's ChatGPT to suggest shell commands based on natural language queries. This tool aims to improve productivity and make it easier for users to interact with the shell, especially those who are not well-versed in shell scripting or command line utilities.
 
+![Preview](preview.gif)
+
 ## Table of Contents
 
 - [Features](#features)

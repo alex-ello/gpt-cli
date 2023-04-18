@@ -4,23 +4,24 @@ import (
 	"fmt"
 	"github.com/alex-ello/gpt-cli/internal/console"
 	"os"
-    "path/filepath"
-    "strings"
+	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
-	configPath          string
-	Debug               bool    `toml:"debug,omitempty"`
-	MaxTokens           int     `toml:"max_tokens,omitempty"`
-	Temperature         float32 `toml:"temperature,omitempty"`
-	PromptTemplate      string  `toml:"prompt_template,omitempty"`
-	Model               string  `toml:"model,omitempty"`
-	APIKey              string  `toml:"api_key,omitempty"`
-	Color               bool    `toml:"color,omitempty"`
-	SystemMessage       string  `toml:"system_message,omitempty"`
-	SystemMessageDebug  string  `toml:"system_message_debug,omitempty"`
+	configPath         string
+	Version            string
+	Debug              bool    `toml:"debug,omitempty"`
+	MaxTokens          int     `toml:"max_tokens,omitempty"`
+	Temperature        float32 `toml:"temperature,omitempty"`
+	PromptTemplate     string  `toml:"prompt_template,omitempty"`
+	Model              string  `toml:"model,omitempty"`
+	APIKey             string  `toml:"api_key,omitempty"`
+	Color              bool    `toml:"color,omitempty"`
+	SystemMessage      string  `toml:"system_message,omitempty"`
+	SystemMessageDebug string  `toml:"system_message_debug,omitempty"`
 }
 
 func NewConfig(configPath string) *Config {
@@ -84,24 +85,18 @@ func (c *Config) SaveConfig() error {
 	return nil
 }
 
-func (c *Config) HandleMessage(input string) (bool, error) {
-	command := strings.TrimSpace(input)
-	switch command {
-	case "config":
-		err := c.setAPIKeyDialog()
-		if err != nil {
-			return true, fmt.Errorf("error setting API key: %w", err)
-		}
+func (c *Config) ConfigDialog() error {
 
-		err = c.SaveConfig()
-		if err != nil {
-			return true, fmt.Errorf("error saving config: %w", err)
-		}
-	default:
-		return false, nil
+	err := c.setAPIKeyDialog()
+	if err != nil {
+		return fmt.Errorf("error setting API key: %w", err)
 	}
 
-	return true, nil
+	err = c.SaveConfig()
+	if err != nil {
+		return fmt.Errorf("error saving config: %w", err)
+	}
+	return nil
 }
 
 func (c *Config) setAPIKeyDialog() error {
@@ -157,13 +152,13 @@ func GetConfigFilePath(appName, configName string) string {
 		return configPath
 	}
 
-	configPath, _ := getConfigPathFromHomeDir(appName, configName);
+	configPath, _ := getConfigPathFromHomeDir(appName, configName)
 
 	return configPath
 }
 
 func (c *Config) GetSystemMessage() string {
-    if c.Debug {
+	if c.Debug {
 		return c.SystemMessageDebug
 	}
 	return c.SystemMessage
